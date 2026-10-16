@@ -80,7 +80,7 @@ async function decryptData(encryptedData, key, iv) {
 async function decryptZipFile(passphrase) {
   try {
     // Fetch the encrypted file
-    const response = await fetch('public/ds15102026gu.enc.json');
+    const response = await fetch('public/ds16102026gu.enc.json');
     if (!response.ok) {
       throw new Error(`Failed to fetch encrypted file: ${response.status}`);
     }
@@ -490,6 +490,7 @@ passphraseWrapper.appendChild(passphraseInput);
      const excelExtensions = /\.(xls[xmb]?|ods|xml)$/i;
      const csvExtensions = /\.(csv|tsv|txt)$/i;
      const jsonExtensions = /\.json$/i;
+     const yamlExtensions = /\.ya?ml$/i;
 
      for (const fileName of Object.keys(zipContent.files)) {
        const zipFile = zipContent.files[fileName];
@@ -534,6 +535,17 @@ passphraseWrapper.appendChild(passphraseInput);
              jsonData[baseName] = JSON.parse(jsonText);
            } catch (err) {
              console.warn(`Failed to parse JSON file "${fileName}":`, err);
+           }
+         } else if (yamlExtensions.test(fileName)) {
+           // Handle YAML files (stored as raw text for changelog etc.)
+           try {
+             const yamlText = await zipFile.async('text');
+             const baseName = fileName.split('/').pop().replace(/\.[^.]+$/, '');
+             if (baseName === 'changelog') {
+               window.changelogYamlText = yamlText;
+             }
+           } catch (err) {
+             console.warn(`Failed to read YAML file "${fileName}":`, err);
            }
          }
        }
